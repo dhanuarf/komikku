@@ -13,30 +13,18 @@ import tachiyomi.presentation.core.i18n.stringResource
 
 @Composable
 fun MangaInfoButtons(
-    showRecommendsButton: Boolean,
     showMergeWithAnotherButton: Boolean,
-    onRecommendClicked: () -> Unit,
     onMergeWithAnotherClicked: () -> Unit,
 ) {
-    if (showRecommendsButton || showMergeWithAnotherButton) {
+    if (showMergeWithAnotherButton) {
         Column(Modifier.fillMaxWidth()) {
-            if (showMergeWithAnotherButton) {
-                Button(
-                    onClick = onMergeWithAnotherClicked,
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                ) {
-                    Text(stringResource(SYMR.strings.merge_with_another_source))
-                }
-            }
-            if (showRecommendsButton) {
-                // KMK -->
-                OutlinedButtonWithArrow(
-                    text = stringResource(SYMR.strings.az_recommends),
-                    onClick = onRecommendClicked,
-                )
-                // KMK <--
+            Button(
+                onClick = onMergeWithAnotherClicked,
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+            ) {
+                Text(stringResource(SYMR.strings.merge_with_another_source))
             }
         }
     }

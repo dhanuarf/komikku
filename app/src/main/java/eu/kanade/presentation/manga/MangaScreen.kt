@@ -29,14 +29,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -66,9 +64,7 @@ import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastMap
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import eu.kanade.domain.source.service.SourcePreferences
 import eu.kanade.domain.ui.UiPreferences
-import eu.kanade.presentation.browse.RelatedMangaTitle
 import eu.kanade.presentation.components.relativeDateText
 import eu.kanade.presentation.manga.components.ChapterDownloadAction
 import eu.kanade.presentation.manga.components.ChapterHeader
@@ -80,10 +76,8 @@ import eu.kanade.presentation.manga.components.MangaInfoBox
 import eu.kanade.presentation.manga.components.MangaInfoButtons
 import eu.kanade.presentation.manga.components.MangaToolbar
 import eu.kanade.presentation.manga.components.MissingChapterCountListItem
-import eu.kanade.presentation.manga.components.OutlinedButtonWithArrow
 import eu.kanade.presentation.manga.components.PagePreviewItems
 import eu.kanade.presentation.manga.components.PagePreviews
-import eu.kanade.presentation.manga.components.RelatedMangasRow
 import eu.kanade.presentation.manga.components.SearchMetadataChips
 import eu.kanade.presentation.util.formatChapterNumber
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -121,13 +115,11 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaCover
 import tachiyomi.domain.source.model.StubSource
 import tachiyomi.i18n.MR
-import tachiyomi.i18n.kmk.KMR
 import tachiyomi.presentation.core.components.TwoPanelBox
 import tachiyomi.presentation.core.components.VerticalFastScroller
 import tachiyomi.presentation.core.components.material.ExtendedFloatingActionButton
 import tachiyomi.presentation.core.components.material.PullRefresh
 import tachiyomi.presentation.core.components.material.Scaffold
-import tachiyomi.presentation.core.components.material.padding
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.presentation.core.util.shouldExpandFAB
@@ -442,9 +434,6 @@ private fun MangaScreenSmallImpl(
     // SY <--
     // KMK -->
     val uiPreferences = Injekt.get<UiPreferences>()
-    val relatedMangasEnabled by Injekt.get<SourcePreferences>().relatedMangas().collectAsState()
-    val expandRelatedMangas by uiPreferences.expandRelatedMangas().collectAsState()
-    val showRelatedMangasInOverflow by uiPreferences.relatedMangasInOverflow().collectAsState()
 
     var layoutSize by remember { mutableStateOf(IntSize.Zero) }
     var fabSize by remember { mutableStateOf(IntSize.Zero) }
@@ -498,13 +487,9 @@ private fun MangaScreenSmallImpl(
                 onClickSourceSettings = onClickSourceSettingsClicked,
                 onClearManga = onClearManga,
                 onOpenMangaFolder = onOpenMangaFolder,
-                onClickRelatedMangas = onRelatedMangasScreenClick.takeIf {
-                    !expandRelatedMangas &&
-                        showRelatedMangasInOverflow &&
-                        state.manga.source != MERGED_SOURCE_ID
-                },
+                onClickRelatedMangas = onRelatedMangasScreenClick.takeIf { state.manga.source != MERGED_SOURCE_ID },
                 // KMK <--
-                onClickRecommend = onRecommendClicked.takeIf { state.showRecommendationsInOverflow },
+                onClickRecommend = onRecommendClicked,
                 onClickMergedSettings = onMergedSettingsClicked.takeIf { state.manga.source == MERGED_SOURCE_ID },
                 onClickMerge = onMergeClicked.takeIf { state.showMergeInOverflow },
                 // SY <--
@@ -709,62 +694,13 @@ private fun MangaScreenSmallImpl(
                         )
                     }
 
-                    // KMK -->
-                    if (state.source !is StubSource &&
-                        relatedMangasEnabled &&
-                        state.manga.source != MERGED_SOURCE_ID
-                    ) {
-                        if (expandRelatedMangas) {
-                            if (state.relatedMangasSorted?.isNotEmpty() != false) {
-                                item { HorizontalDivider() }
-                                item(
-                                    key = MangaScreenItem.RELATED_MANGAS,
-                                    contentType = MangaScreenItem.RELATED_MANGAS,
-                                ) {
-                                    Column {
-                                        RelatedMangaTitle(
-                                            title = stringResource(KMR.strings.pref_source_related_mangas),
-                                            subtitle = null,
-                                            onClick = onRelatedMangasScreenClick,
-                                            onLongClick = null,
-                                            modifier = Modifier
-                                                .padding(horizontal = MaterialTheme.padding.medium),
-                                        )
-                                        RelatedMangasRow(
-                                            relatedMangas = state.relatedMangasSorted,
-                                            getMangaState = getMangaState,
-                                            onMangaClick = onRelatedMangaClick,
-                                            onMangaLongClick = onRelatedMangaLongClick,
-                                        )
-                                    }
-                                }
-                                item { HorizontalDivider() }
-                            }
-                        } else if (!showRelatedMangasInOverflow) {
-                            item(
-                                key = MangaScreenItem.RELATED_MANGAS,
-                                contentType = MangaScreenItem.RELATED_MANGAS,
-                            ) {
-                                OutlinedButtonWithArrow(
-                                    text = stringResource(KMR.strings.pref_source_related_mangas)
-                                        .uppercase(),
-                                    onClick = onRelatedMangasScreenClick,
-                                )
-                            }
-                        }
-                    }
-                    // KMK <--
-
-                    // SY -->
-                    if (!state.showRecommendationsInOverflow || state.showMergeWithAnother) {
+                    if (state.showMergeWithAnother) {
                         item(
                             key = MangaScreenItem.INFO_BUTTONS,
                             contentType = MangaScreenItem.INFO_BUTTONS,
                         ) {
                             MangaInfoButtons(
-                                showRecommendsButton = !state.showRecommendationsInOverflow,
                                 showMergeWithAnotherButton = state.showMergeWithAnother,
-                                onRecommendClicked = onRecommendClicked,
                                 onMergeWithAnotherClicked = onMergeWithAnotherClicked,
                             )
                         }
@@ -780,7 +716,6 @@ private fun MangaScreenSmallImpl(
                             rowCount = previewsRowCount,
                         )
                     }
-                    // SY <--
 
                     item(
                         key = MangaScreenItem.CHAPTER_HEADER,
@@ -910,9 +845,6 @@ private fun MangaScreenLargeImpl(
     // SY <--
     // KMK -->
     val uiPreferences = Injekt.get<UiPreferences>()
-    val relatedMangasEnabled by Injekt.get<SourcePreferences>().relatedMangas().collectAsState()
-    val expandRelatedMangas by uiPreferences.expandRelatedMangas().collectAsState()
-    val showRelatedMangasInOverflow by uiPreferences.relatedMangasInOverflow().collectAsState()
 
     var layoutSize by remember { mutableStateOf(IntSize.Zero) }
     var fabSize by remember { mutableStateOf(IntSize.Zero) }
@@ -959,13 +891,9 @@ private fun MangaScreenLargeImpl(
                 onClickSourceSettings = onClickSourceSettingsClicked,
                 onClearManga = onClearManga,
                 onOpenMangaFolder = onOpenMangaFolder,
-                onClickRelatedMangas = onRelatedMangasScreenClick.takeIf {
-                    !expandRelatedMangas &&
-                        showRelatedMangasInOverflow &&
-                        state.manga.source != MERGED_SOURCE_ID
-                },
+                onClickRelatedMangas = onRelatedMangasScreenClick.takeIf { state.manga.source != MERGED_SOURCE_ID },
                 // KMK <--
-                onClickRecommend = onRecommendClicked.takeIf { state.showRecommendationsInOverflow },
+                onClickRecommend = onRecommendClicked,
                 onClickMergedSettings = onMergedSettingsClicked.takeIf { state.manga.source == MERGED_SOURCE_ID },
                 onClickMerge = onMergeClicked.takeIf { state.showMergeInOverflow },
                 // SY <--
@@ -1149,11 +1077,9 @@ private fun MangaScreenLargeImpl(
                             // SY <--
                         )
                         // SY -->
-                        if (!state.showRecommendationsInOverflow || state.showMergeWithAnother) {
+                        if (state.showMergeWithAnother) {
                             MangaInfoButtons(
-                                showRecommendsButton = !state.showRecommendationsInOverflow,
                                 showMergeWithAnotherButton = state.showMergeWithAnother,
-                                onRecommendClicked = onRecommendClicked,
                                 onMergeWithAnotherClicked = onMergeWithAnotherClicked,
                             )
                         }
@@ -1181,51 +1107,6 @@ private fun MangaScreenLargeImpl(
                                 bottom = contentPadding.calculateBottomPadding(),
                             ),
                         ) {
-                            // KMK -->
-                            if (state.source !is StubSource &&
-                                relatedMangasEnabled &&
-                                state.manga.source != MERGED_SOURCE_ID
-                            ) {
-                                if (expandRelatedMangas) {
-                                    if (state.relatedMangasSorted?.isNotEmpty() != false) {
-                                        item(
-                                            key = MangaScreenItem.RELATED_MANGAS,
-                                            contentType = MangaScreenItem.RELATED_MANGAS,
-                                        ) {
-                                            Column {
-                                                RelatedMangaTitle(
-                                                    title = stringResource(KMR.strings.pref_source_related_mangas)
-                                                        .uppercase(),
-                                                    subtitle = null,
-                                                    onClick = onRelatedMangasScreenClick,
-                                                    onLongClick = null,
-                                                    modifier = Modifier
-                                                        .padding(horizontal = MaterialTheme.padding.medium),
-                                                )
-                                                RelatedMangasRow(
-                                                    relatedMangas = state.relatedMangasSorted,
-                                                    getMangaState = getMangaState,
-                                                    onMangaClick = onRelatedMangaClick,
-                                                    onMangaLongClick = onRelatedMangaLongClick,
-                                                )
-                                            }
-                                        }
-                                        item { HorizontalDivider() }
-                                    }
-                                } else if (!showRelatedMangasInOverflow) {
-                                    item(
-                                        key = MangaScreenItem.RELATED_MANGAS,
-                                        contentType = MangaScreenItem.RELATED_MANGAS,
-                                    ) {
-                                        OutlinedButtonWithArrow(
-                                            text = stringResource(KMR.strings.pref_source_related_mangas),
-                                            onClick = onRelatedMangasScreenClick,
-                                        )
-                                    }
-                                }
-                            }
-                            // KMK <--
-
                             item(
                                 key = MangaScreenItem.CHAPTER_HEADER,
                                 contentType = MangaScreenItem.CHAPTER_HEADER,
