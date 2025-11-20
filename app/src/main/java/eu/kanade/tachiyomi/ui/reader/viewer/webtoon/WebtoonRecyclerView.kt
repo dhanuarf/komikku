@@ -34,6 +34,8 @@ class WebtoonRecyclerView @JvmOverloads constructor(
     private var firstVisibleItemPosition = 0
     private var lastVisibleItemPosition = 0
     private var currentScale = DEFAULT_RATE
+    private var shouldTriggerSingleTap = true
+    private var wasManuallyScrolling = false
     var zoomOutDisabled = false
         set(value) {
             field = value
@@ -86,6 +88,10 @@ class WebtoonRecyclerView @JvmOverloads constructor(
         val totalItemCount = layoutManager?.itemCount ?: 0
         atLastPosition = visibleItemCount > 0 && lastVisibleItemPosition == totalItemCount - 1
         atFirstPosition = firstVisibleItemPosition == 0
+
+        when (state){
+            SCROLL_STATE_IDLE -> wasManuallyScrolling = false
+        }
     }
 
     private fun getPositionX(positionX: Float): Float {
@@ -133,6 +139,10 @@ class WebtoonRecyclerView @JvmOverloads constructor(
             isZooming = false
             currentScale = toRate
         }
+    }
+
+    fun onManualFling(){
+        wasManuallyScrolling = true
     }
 
     fun zoomFling(velocityX: Int, velocityY: Int): Boolean {
@@ -227,7 +237,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
     inner class GestureListener : GestureDetectorWithLongTap.Listener() {
 
         override fun onSingleTapConfirmed(ev: MotionEvent): Boolean {
-            tapListener?.invoke(ev)
+            if (shouldTriggerSingleTap) tapListener?.invoke(ev)
             return false
         }
 
@@ -278,6 +288,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
                     scrollPointerId = ev.getPointerId(0)
                     downX = (ev.x + 0.5f).toInt()
                     downY = (ev.y + 0.5f).toInt()
+                    shouldTriggerSingleTap = !wasManuallyScrolling
                 }
                 MotionEvent.ACTION_POINTER_DOWN -> {
                     scrollPointerId = ev.getPointerId(actionIndex)
