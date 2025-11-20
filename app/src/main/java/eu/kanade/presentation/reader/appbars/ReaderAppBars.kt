@@ -94,18 +94,6 @@ fun ReaderAppBars(
     onClickCropBorder: () -> Unit,
     onClickSettings: () -> Unit,
     // SY -->
-    isExhToolsVisible: Boolean,
-    onSetExhUtilsVisibility: (Boolean) -> Unit,
-    isAutoScroll: Boolean,
-    isAutoScrollEnabled: Boolean,
-    onToggleAutoscroll: (Boolean) -> Unit,
-    autoScrollFrequency: String,
-    onSetAutoScrollFrequency: (String) -> Unit,
-    onClickAutoScrollHelp: () -> Unit,
-    onClickRetryAll: () -> Unit,
-    onClickRetryAllHelp: () -> Unit,
-    onClickBoostPage: () -> Unit,
-    onClickBoostPageHelp: () -> Unit,
     navBarType: NavBarType,
     currentPageText: String,
     enabledButtons: ImmutableSet<String>,
@@ -265,23 +253,6 @@ fun ReaderAppBars(
                         },
                         SY <-- */
                     )
-                    // SY -->
-                    ExhUtils(
-                        isVisible = isExhToolsVisible,
-                        onSetExhUtilsVisibility = onSetExhUtilsVisibility,
-                        backgroundColor = backgroundColor,
-                        isAutoScroll = isAutoScroll,
-                        isAutoScrollEnabled = isAutoScrollEnabled,
-                        onToggleAutoscroll = onToggleAutoscroll,
-                        autoScrollFrequency = autoScrollFrequency,
-                        onSetAutoScrollFrequency = onSetAutoScrollFrequency,
-                        onClickAutoScrollHelp = onClickAutoScrollHelp,
-                        onClickRetryAll = onClickRetryAll,
-                        onClickRetryAllHelp = onClickRetryAllHelp,
-                        onClickBoostPage = onClickBoostPage,
-                        onClickBoostPageHelp = onClickBoostPageHelp,
-                    )
-                    // SY <--
                 }
             }
 
