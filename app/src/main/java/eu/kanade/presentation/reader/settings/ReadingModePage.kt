@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.kanade.domain.manga.model.readerOrientation
 import eu.kanade.domain.manga.model.readingMode
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
@@ -23,12 +24,13 @@ import tachiyomi.presentation.core.components.SettingsChipRow
 import tachiyomi.presentation.core.components.SliderItem
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.collectAsState
+import tachiyomi.presentation.core.util.collectAsStateWithLifecycle
 import java.text.NumberFormat
 
 @Composable
 internal fun ReadingModePage(screenModel: ReaderSettingsScreenModel) {
     HeadingItem(MR.strings.pref_category_for_this_series)
-    val manga by screenModel.mangaFlow.collectAsState()
+    val manga by screenModel.mangaFlow.collectAsStateWithLifecycle()
 
     val readingMode = remember(manga) { ReadingMode.fromPreference(manga?.readingMode?.toInt()) }
     SettingsChipRow(MR.strings.pref_category_reading_mode) {
@@ -52,7 +54,7 @@ internal fun ReadingModePage(screenModel: ReaderSettingsScreenModel) {
         }
     }
 
-    val viewer by screenModel.viewerFlow.collectAsState()
+    val viewer by screenModel.viewerFlow.collectAsStateWithLifecycle()
     if (viewer is WebtoonViewer) {
         WebtoonViewerSettings(
             screenModel,
@@ -72,8 +74,8 @@ internal fun ReadingModePage(screenModel: ReaderSettingsScreenModel) {
 private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
     HeadingItem(MR.strings.pager_viewer)
 
-    val navigationModePager by screenModel.preferences.navigationModePager().collectAsState()
-    val pagerNavInverted by screenModel.preferences.pagerNavInverted().collectAsState()
+    val navigationModePager by screenModel.preferences.navigationModePager().collectAsStateWithLifecycle()
+    val pagerNavInverted by screenModel.preferences.pagerNavInverted().collectAsStateWithLifecycle()
     TapZonesItems(
         selected = navigationModePager,
         onSelect = screenModel.preferences.navigationModePager()::set,
@@ -81,7 +83,7 @@ private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
         onSelectInvertMode = screenModel.preferences.pagerNavInverted()::set,
     )
 
-    val imageScaleType by screenModel.preferences.imageScaleType().collectAsState()
+    val imageScaleType by screenModel.preferences.imageScaleType().collectAsStateWithLifecycle()
     SettingsChipRow(MR.strings.pref_image_scale_type) {
         ReaderPreferences.ImageScaleType.mapIndexed { index, it ->
             FilterChip(
@@ -92,7 +94,7 @@ private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
         }
     }
 
-    val zoomStart by screenModel.preferences.zoomStart().collectAsState()
+    val zoomStart by screenModel.preferences.zoomStart().collectAsStateWithLifecycle()
     SettingsChipRow(MR.strings.pref_zoom_start) {
         ReaderPreferences.ZoomStart.mapIndexed { index, it ->
             FilterChip(
@@ -104,7 +106,7 @@ private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
     }
 
     // SY -->
-    val pageLayout by screenModel.preferences.pageLayout().collectAsState()
+    val pageLayout by screenModel.preferences.pageLayout().collectAsStateWithLifecycle()
     SettingsChipRow(SYMR.strings.page_layout) {
         ReaderPreferences.PageLayouts.mapIndexed { index, it ->
             FilterChip(
@@ -142,7 +144,7 @@ private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
         pref = screenModel.preferences.navigateToPan(),
     )
 
-    val dualPageSplitPaged by screenModel.preferences.dualPageSplitPaged().collectAsState()
+    val dualPageSplitPaged by screenModel.preferences.dualPageSplitPaged().collectAsStateWithLifecycle()
     CheckboxItem(
         label = stringResource(MR.strings.pref_dual_page_split),
         pref = screenModel.preferences.dualPageSplitPaged(),
@@ -155,7 +157,7 @@ private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
         )
     }
 
-    val dualPageRotateToFit by screenModel.preferences.dualPageRotateToFit().collectAsState()
+    val dualPageRotateToFit by screenModel.preferences.dualPageRotateToFit().collectAsStateWithLifecycle()
     CheckboxItem(
         label = stringResource(MR.strings.pref_page_rotate),
         pref = screenModel.preferences.dualPageRotateToFit(),
@@ -184,7 +186,7 @@ private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
         label = stringResource(KMR.strings.pref_paged_disable_zoom_in),
         pref = screenModel.preferences.pagedDisableZoomIn(),
     )
-    val pagedDisableZoomIn by screenModel.preferences.pagedDisableZoomIn().collectAsState()
+    val pagedDisableZoomIn by screenModel.preferences.pagedDisableZoomIn().collectAsStateWithLifecycle()
     if (!pagedDisableZoomIn) {
         CheckboxItem(
             label = stringResource(MR.strings.pref_double_tap_zoom),
@@ -193,7 +195,7 @@ private fun PagerViewerSettings(screenModel: ReaderSettingsScreenModel) {
     }
     // KMK <--
 
-    val centerMarginType by screenModel.preferences.centerMarginType().collectAsState()
+    val centerMarginType by screenModel.preferences.centerMarginType().collectAsStateWithLifecycle()
     SettingsChipRow(SYMR.strings.pref_center_margin) {
         ReaderPreferences.CenterMarginTypes.mapIndexed { index, it ->
             FilterChip(

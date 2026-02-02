@@ -36,6 +36,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
@@ -146,6 +148,7 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.kmk.KMR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.util.collectAsState
+import tachiyomi.presentation.core.util.collectAsStateWithLifecycle
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.ByteArrayOutputStream
@@ -458,24 +461,41 @@ class ReaderActivity : BaseActivity() {
                 return
             }
 
-            val isHttpSource = viewModel.getSource() is HttpSource
-            val isFullscreen by readerPreferences.fullscreen().collectAsState()
-            val flashOnPageChange by readerPreferences.flashOnPageChange().collectAsState()
+            val isHttpSource by remember {
+                derivedStateOf {
+                    viewModel.getSource() is HttpSource
+                }
+            }
 
-            val colorOverlayEnabled by readerPreferences.colorFilter().collectAsState()
-            val colorOverlay by readerPreferences.colorFilterValue().collectAsState()
-            val colorOverlayMode by readerPreferences.colorFilterMode().collectAsState()
+            val isFullscreen by readerPreferences.fullscreen().collectAsStateWithLifecycle()
+            val flashOnPageChange by readerPreferences.flashOnPageChange().collectAsStateWithLifecycle()
+
+            val colorOverlayEnabled by readerPreferences.colorFilter().collectAsStateWithLifecycle()
+            val colorOverlay by readerPreferences.colorFilterValue().collectAsStateWithLifecycle()
+            val colorOverlayMode by readerPreferences.colorFilterMode().collectAsStateWithLifecycle()
             val colorOverlayBlendMode = remember(colorOverlayMode) {
                 ReaderPreferences.ColorFilterMode.getOrNull(colorOverlayMode)?.second
             }
 
-            val cropBorderPaged by readerPreferences.cropBorders().collectAsState()
-            val cropBorderWebtoon by readerPreferences.cropBordersWebtoon().collectAsState()
+            val cropBorderPaged by readerPreferences.cropBorders().collectAsStateWithLifecycle()
+            val cropBorderWebtoon by readerPreferences.cropBordersWebtoon().collectAsStateWithLifecycle()
             // SY -->
-            val readingMode = viewModel.getMangaReadingMode()
-            val isPagerType = ReadingMode.isPagerType(readingMode)
-            val isWebtoon = ReadingMode.WEBTOON.flagValue == readingMode
-            val cropBorderContinuousVertical by readerPreferences.cropBordersContinuousVertical().collectAsState()
+            val readingMode by remember {
+                derivedStateOf {
+                    viewModel.getMangaReadingMode()
+                }
+            }
+            val isPagerType by remember {
+                derivedStateOf {
+                    ReadingMode.isPagerType(readingMode)
+                }
+            }
+            val isWebtoon by remember {
+                derivedStateOf {
+                    ReadingMode.WEBTOON.flagValue == readingMode
+                }
+            }
+            val cropBorderContinuousVertical by readerPreferences.cropBordersContinuousVertical().collectAsStateWithLifecycle()
             val cropEnabled = if (isPagerType) {
                 cropBorderPaged
             } else if (isWebtoon) {
@@ -484,12 +504,12 @@ class ReaderActivity : BaseActivity() {
                 cropBorderContinuousVertical
             }
             val readerBottomButtons by readerPreferences.readerBottomButtons().changes().map { it.toImmutableSet() }
-                .collectAsState(persistentSetOf())
-            val dualPageSplitPaged by readerPreferences.dualPageSplitPaged().collectAsState()
+                .collectAsStateWithLifecycle(persistentSetOf())
+            val dualPageSplitPaged by readerPreferences.dualPageSplitPaged().collectAsStateWithLifecycle()
 
-            val forceHorizontalSeekbar by readerPreferences.forceHorizontalSeekbar().collectAsState()
-            val landscapeVerticalSeekbar by readerPreferences.landscapeVerticalSeekbar().collectAsState()
-            val leftHandedVerticalSeekbar by readerPreferences.leftVerticalSeekbar().collectAsState()
+            val forceHorizontalSeekbar by readerPreferences.forceHorizontalSeekbar().collectAsStateWithLifecycle()
+            val landscapeVerticalSeekbar by readerPreferences.landscapeVerticalSeekbar().collectAsStateWithLifecycle()
+            val leftHandedVerticalSeekbar by readerPreferences.leftVerticalSeekbar().collectAsStateWithLifecycle()
             val configuration = LocalConfiguration.current
             val verticalSeekbarLandscape =
                 configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && landscapeVerticalSeekbar
